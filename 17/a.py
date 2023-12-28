@@ -80,7 +80,7 @@ class Path:
 
             if nkey not in costmap or ncost < costmap[nkey]:
                 costmap[nkey] = ncost
-                acc.append(Path(ny, nx, ndir, nconsec, self.trail))
+                acc.append((ncost, Path(ny, nx, ndir, nconsec, self.trail)))
 
         return acc
 
@@ -90,33 +90,23 @@ class Path:
     def __repr__(self):
         return self.__str__()
 
+    def __lt__(self, other):
+        return len(self.trail) < len(other.trail)
+
 
 def main():
     map = load()
 
-    paths = [Path(0, 0, RIGHT, 0)]
-    target = (len(map)-1, len(map[0])-1)
-
-    i = 0
+    paths = [(0, Path(0, 0, RIGHT, 0))]
     while paths:
-        i += 1
-        p = paths.pop(0)
-        if (p.y, p.x) == target:
-            print(costmap[(p.y, p.x, p.dir, p.consec)])
+        c, p = heapq.heappop(paths)
+        if p.y == len(map) - 1 and p.x == len(map[0]) - 1:
+            print(c)
             quit()
 
-        paths.extend(p.walk(map))
-        paths.sort(key=lambda p: costmap[(p.y, p.x, p.dir, p.consec)])
-        if i % 10000 == 0:
-            print(i, len(paths))
-
-    print('')
-    for (y, x, dir, consec), c in costmap.items():
-        if not (y == target[0] and x == target[1]):
-            continue
-        print(c)
-
+        for item in p.walk(map):
+            heapq.heappush(paths, item)
 
 if __name__ == "__main__":
     main()
-# 851
+
